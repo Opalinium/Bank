@@ -121,17 +121,23 @@ public abstract class AbstractBankCommand extends CompositeCommand {
 
     protected boolean parseValue(User user, String arg, RequestType type) {
         try {
-            if(arg.equalsIgnoreCase("all")) {
-                if(type.equals(RequestType.USER_DEPOSIT)) {
+            if (arg.equalsIgnoreCase("all")) {
+                if (type.equals(RequestType.USER_DEPOSIT)) {
                     VaultHook vault = addon.getVault();
 
                     value = new Money(vault.getBalance(user, getWorld()));
-                } else if(type.equals(RequestType.USER_WITHDRAWAL)) {
+                } else if (type.equals(RequestType.USER_WITHDRAWAL)) {
                     value = new Money(addon.getBankManager().getBalance(user, getWorld()).getValue());
                 }
-
             } else {
                 value = Money.parseMoney(arg);
+
+                // Check if the value is a whole number
+                double val = value.getValue();
+                if (val != Math.floor(val) || Double.isInfinite(val) || Double.isNaN(val)) {
+                    user.sendMessage("bank.errors.must-be-a-number");
+                    return false;
+                }
             }
         } catch (Exception e) {
             if (e.getMessage().startsWith("bank")) {
